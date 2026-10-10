@@ -16,6 +16,8 @@ export async function getProductById(id: number): Promise<Product | null> {
       },
     );
 
+    console.log(res)
+
     if (!res.ok) return null;
     const data: Product = await res.json();
     return data;
