@@ -28,6 +28,8 @@ export default async function ProductDetailPage({ params }: Props) {
   const product = await getProductById(Number(id));
 
   if (!product) {
+    alert(id)
+    alert(product)
     notFound();
   }
 
