@@ -28,11 +28,7 @@ export default async function ProductDetailPage({ params }: Props) {
   const product = await getProductById(Number(id));
 
   if (!product) {
-    if (typeof window !== "undefined") {
-      alert(id);
-      alert(product);
-    }
-    notFound();
+    return notFound();
   }
 
   return <ProductDetailClient product={product} />;
