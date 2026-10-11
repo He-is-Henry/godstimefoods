@@ -3,4 +3,7 @@ interface Image {
   name: string;
   path: string;
   url: string;
+  productImages: {
+    productId: number;
+  }[];
 }

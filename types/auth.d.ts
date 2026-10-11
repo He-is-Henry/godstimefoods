@@ -3,5 +3,7 @@ interface User {
   firstName: string;
   lastName: string;
   email: string;
+  avatar: string | null;
+  mustChangePassword: boolean;
   role: "ADMIN" | "CUSTOMER" | "MANAGER";
 }

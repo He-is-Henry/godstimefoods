@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function SignupPage() {
   return (
-    <Suspense fallback={<p>Loading...</p>}> 
+    <Suspense fallback={<p>Loading...</p>}>
       <SignupClient />
     </Suspense>
   );

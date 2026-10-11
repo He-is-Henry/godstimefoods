@@ -6,10 +6,12 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState, SubmitEvent } from "react";
 import toast from "react-hot-toast";
 import Link from "next/link";
+import { Eye, EyeOff } from "lucide-react"; // Imported eye icons
 
 export default function LoginClient() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false); // Added toggle state
   const [loading, setLoading] = useState(false);
 
   const { setAuth } = useAuth();
@@ -30,7 +32,7 @@ export default function LoginClient() {
     try {
       setLoading(true);
       const data = await login({ email, password });
-      console.log(data)
+      console.log(data);
       setAuth(data);
       toast.success("Welcome back!");
       router.replace(redirectTo);
@@ -70,14 +72,28 @@ export default function LoginClient() {
             <label className="block text-xs font-medium text-purple-200 mb-1.5 uppercase tracking-wider">
               Password
             </label>
-            <input
-              type="password"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              className="w-full px-4 py-3 rounded-xl bg-slate-900/80 border border-purple-500/30 text-white placeholder-purple-400/40 focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 transition-all text-sm"
-            />
+            <div className="relative"> {/* Container made relative */}
+              <input
+                type={showPassword ? "text" : "password"} // Dynamic input type
+                id="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full pl-4 pr-12 py-3 rounded-xl bg-slate-900/80 border border-purple-500/30 text-white placeholder-purple-400/40 focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 transition-all text-sm"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-purple-400/60 hover:text-purple-300 transition-colors focus:outline-none"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-5 w-5" />
+                ) : (
+                  <Eye className="h-5 w-5" />
+                )}
+              </button>
+            </div>
           </div>
 
           <button

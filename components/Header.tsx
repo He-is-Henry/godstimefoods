@@ -1,11 +1,13 @@
 ﻿"use client";
 
 import { useAuth } from "@/context/AuthContext";
-import { ShoppingBag, ShoppingCart, User as UserIcon } from "lucide-react";
+import { Shield, ShoppingBag, ShoppingCart, User as UserIcon } from "lucide-react";
 import Link from "next/link";
 
 export default function Header() {
   const { user, loading: authLoading } = useAuth();
+
+  const isStaff = user?.role === "ADMIN" || user?.role === "MANAGER";
 
   return (
     <header className="sticky top-0 z-50 border-b border-purple-500/20 bg-slate-950/80 backdrop-blur-xl">
@@ -35,13 +37,25 @@ export default function Header() {
             {authLoading ? (
               <div className="h-9 w-20 animate-pulse rounded-xl bg-slate-800" />
             ) : user ? (
-              <Link
-                href="/profile"
-                className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-purple-950/40 border border-purple-500/30 text-sm font-medium text-purple-200 hover:text-white hover:border-pink-500/40 transition-all"
-              >
-                <UserIcon className="h-4 w-4 text-pink-400" />
-                <span>{user.firstName}</span>
-              </Link>
+              <div className="flex items-center gap-2.5">
+                {isStaff && (
+                  <Link
+                    href="/admin"
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-purple-950/60 border border-purple-500/40 text-xs font-semibold text-purple-200 hover:text-white hover:border-pink-500/40 transition-all shadow-md shadow-purple-950/50"
+                  >
+                    <Shield className="h-4 w-4 text-purple-400" />
+                    <span className="hidden sm:inline">Admin Console</span>
+                  </Link>
+                )}
+
+                <Link
+                  href="/profile"
+                  className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-purple-950/40 border border-purple-500/30 text-sm font-medium text-purple-200 hover:text-white hover:border-pink-500/40 transition-all"
+                >
+                  <UserIcon className="h-4 w-4 text-pink-400" />
+                  <span>{user.firstName}</span>
+                </Link>
+              </div>
             ) : (
               <Link
                 href="/login"

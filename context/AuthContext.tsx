@@ -8,7 +8,7 @@ type AuthContextType = {
   user: User | null;
   isAuthenticated: boolean;
   logout: () => void;
-  setAuth: (data: { user: User, accessToken: string }) => void
+  setAuth: (data: { user: User, accessToken?: string }) => void
   loading: boolean;
   fetchCurrentUser: () => void;
 }
@@ -47,10 +47,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [fetchCurrentUser])
 
 
-  const setAuth = (data: { user: User, accessToken: string }) => {
+  const setAuth = (data: { user: User, accessToken?: string }) => {
     const { accessToken, user } = data;
     setUser(user);
-    setToken(accessToken);
+    if (accessToken) setToken(accessToken);
     setLoading(false)
   }
 
