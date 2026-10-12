@@ -31,10 +31,6 @@ import { toast } from "react-hot-toast";
 type ActiveTab = "products" | "categories" | "images";
 
 function getErrorMessage(error: unknown): string {
-  if (typeof error === "object" && error !== null && "response" in error) {
-    const res = (error as { response?: { data?: { message?: string } } }).response;
-    if (res?.data?.message) return res.data.message;
-  }
   if (error instanceof Error) return error.message;
   return "Something went wrong";
 }
@@ -194,33 +190,30 @@ export default function ProductsClient() {
         <div className="flex items-center gap-2 mt-6">
           <button
             onClick={() => handleTabChange("products")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-              activeTab === "products"
-                ? "bg-purple-600 text-white shadow-lg shadow-purple-900/40"
-                : "border border-slate-800 bg-slate-900/60 text-slate-400 hover:text-white"
-            }`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${activeTab === "products"
+              ? "bg-purple-600 text-white shadow-lg shadow-purple-900/40"
+              : "border border-slate-800 bg-slate-900/60 text-slate-400 hover:text-white"
+              }`}
           >
             <Package className="h-4 w-4" /> Products ({products.length})
           </button>
 
           <button
             onClick={() => handleTabChange("categories")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-              activeTab === "categories"
-                ? "bg-purple-600 text-white shadow-lg shadow-purple-900/40"
-                : "border border-slate-800 bg-slate-900/60 text-slate-400 hover:text-white"
-            }`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${activeTab === "categories"
+              ? "bg-purple-600 text-white shadow-lg shadow-purple-900/40"
+              : "border border-slate-800 bg-slate-900/60 text-slate-400 hover:text-white"
+              }`}
           >
             <FolderTree className="h-4 w-4" /> Categories ({categories.length})
           </button>
 
           <button
             onClick={() => handleTabChange("images")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-              activeTab === "images"
-                ? "bg-purple-600 text-white shadow-lg shadow-purple-900/40"
-                : "border border-slate-800 bg-slate-900/60 text-slate-400 hover:text-white"
-            }`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${activeTab === "images"
+              ? "bg-purple-600 text-white shadow-lg shadow-purple-900/40"
+              : "border border-slate-800 bg-slate-900/60 text-slate-400 hover:text-white"
+              }`}
           >
             <ImageIcon className="h-4 w-4" /> Media Library ({images.length})
           </button>

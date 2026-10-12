@@ -28,8 +28,7 @@ export default function AdminDashboardPage() {
       description: "View customer orders, update delivery status, and handle dispatch.",
       href: "/admin/orders",
       icon: ShoppingBag,
-      badge: "Coming Soon",
-      disabled: true,
+      badge: "Orders",
     },
   ];
 
@@ -48,28 +47,6 @@ export default function AdminDashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {adminModules.map((module) => {
           const Icon = module.icon;
-
-          if (module.disabled) {
-            return (
-              <div
-                key={module.title}
-                className="rounded-2xl border border-slate-800/60 bg-slate-900/30 p-6 flex flex-col justify-between opacity-50 cursor-not-allowed"
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="p-3 rounded-xl bg-slate-800 text-slate-400">
-                      <Icon className="h-6 w-6" />
-                    </div>
-                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400">
-                      {module.badge}
-                    </span>
-                  </div>
-                  <h3 className="font-bold text-white text-base mb-1">{module.title}</h3>
-                  <p className="text-xs text-slate-400">{module.description}</p>
-                </div>
-              </div>
-            );
-          }
 
           return (
             <Link

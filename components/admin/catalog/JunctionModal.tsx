@@ -17,10 +17,6 @@ type JunctionModalProps = {
 };
 
 function getErrorMessage(error: unknown): string {
-  if (typeof error === "object" && error !== null && "response" in error) {
-    const res = (error as { response?: { data?: { message?: string } } }).response;
-    if (res?.data?.message) return res.data.message;
-  }
   if (error instanceof Error) return error.message;
   return "Something went wrong";
 }
@@ -177,13 +173,12 @@ export default function JunctionModal({
                   key={cat.id}
                   disabled={isTransitioning}
                   onClick={() => handleCategoryToggle(cat.id, !!isAttached)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
-                    isTransitioning
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${isTransitioning
                       ? "border-amber-500/60 bg-amber-500/10 text-amber-300 animate-pulse"
                       : isAttached
-                      ? "bg-purple-600 border-purple-500 text-white shadow-md shadow-purple-900/30"
-                      : "border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700 hover:text-slate-200"
-                  }`}
+                        ? "bg-purple-600 border-purple-500 text-white shadow-md shadow-purple-900/30"
+                        : "border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700 hover:text-slate-200"
+                    }`}
                 >
                   {isAttached ? <Check className="h-3 w-3" /> : <span>+</span>}
                   {cat.name}
@@ -226,13 +221,12 @@ export default function JunctionModal({
                   <div
                     key={img.id}
                     onClick={() => !isTransitioning && handleImageToggle(img.id, !!isAttached)}
-                    className={`relative h-24 rounded-xl border overflow-hidden cursor-pointer transition-all ${
-                      isTransitioning
+                    className={`relative h-24 rounded-xl border overflow-hidden cursor-pointer transition-all ${isTransitioning
                         ? "border-amber-500 ring-2 ring-amber-500/40 opacity-80 animate-pulse"
                         : isAttached
-                        ? "ring-2 ring-purple-500 border-transparent opacity-100 shadow-md shadow-purple-900/30"
-                        : "border-slate-800 opacity-60 hover:opacity-100"
-                    }`}
+                          ? "ring-2 ring-purple-500 border-transparent opacity-100 shadow-md shadow-purple-900/30"
+                          : "border-slate-800 opacity-60 hover:opacity-100"
+                      }`}
                   >
                     {srcUrl ? (
                       <Image src={srcUrl} alt={img.name || "Media"} fill className="object-cover" />

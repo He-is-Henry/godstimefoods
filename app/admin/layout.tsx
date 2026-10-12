@@ -2,7 +2,7 @@
 
 import AdminNavbar from "@/components/admin/AdminNavbar";
 import { useAuth } from "@/context/AuthContext";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { ReactNode, useEffect } from "react";
 
 type Props = {
@@ -14,12 +14,13 @@ export default function AdminLayout({ children }: Props) {
   const router = useRouter();
 
   const isStaff = user?.role === "ADMIN" || user?.role === "MANAGER";
+  const pathname = usePathname();
 
   useEffect(() => {
     if (!loading && !isStaff) {
-      router.replace("/login");
+      router.replace(`/login?from=${encodeURIComponent(pathname)}`)
     }
-  }, [loading, isStaff, router]);
+  }, [loading, isStaff, router, pathname]);
 
   if (loading || !isStaff) {
     return (

@@ -1,7 +1,7 @@
 "use client"
 
 import { useAuth } from "@/context/AuthContext"
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { ReactNode, useEffect } from "react"
 
 type Props = {
@@ -10,12 +10,14 @@ type Props = {
 export default function ProtectedLayout({ children }: Props) {
   const { loading, isAuthenticated } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
+
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
-      router.replace('/login')
+      router.replace(`/login?from=${encodeURIComponent(pathname)}`)
     }
-  }, [loading, isAuthenticated, router])
+  }, [loading, isAuthenticated, router, pathname])
 
   if (loading) return (
     <div className="min-h-[60vh] flex items-center justify-center">

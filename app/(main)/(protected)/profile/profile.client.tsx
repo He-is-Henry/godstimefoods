@@ -3,8 +3,19 @@
 import ChangePasswordModal from "@/components/auth/ChangePasswordModal";
 import SessionManager from "@/components/SessionManager";
 import { useAuth } from "@/context/AuthContext";
-import { updateProfile, uploadAvatar } from "@/lib/auth";
-import { Camera, Check, KeyRound, LayoutDashboard, LogOut, Mail, MapPin, ShieldCheck, X } from "lucide-react";
+import { updateProfile, uploadAvatar, UpdateUserData } from "@/lib/auth";
+import {
+  Camera,
+  Check,
+  KeyRound,
+  LayoutDashboard,
+  LogOut,
+  Mail,
+  MapPin,
+  Phone,
+  ShieldCheck,
+  X,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { ChangeEvent, useEffect, useRef, useState } from "react";
@@ -17,6 +28,7 @@ export default function ProfileClient() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
 
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
@@ -52,6 +64,7 @@ export default function ProfileClient() {
     setFirstName(user.firstName || "");
     setLastName(user.lastName || "");
     setEmail(user.email || "");
+    setPhone(user.phone || "");
     setIsEditing(true);
   };
 
@@ -71,9 +84,30 @@ export default function ProfileClient() {
   };
 
   const handleSaveProfile = async () => {
+    const payload: Partial<UpdateUserData> = {};
+
+    if (firstName.trim() !== (user.firstName || "")) {
+      payload.firstName = firstName.trim();
+    }
+    if (lastName.trim() !== (user.lastName || "")) {
+      payload.lastName = lastName.trim();
+    }
+    if (email.trim() !== (user.email || "")) {
+      payload.email = email.trim();
+    }
+    if (phone.trim() !== (user.phone || "")) {
+      payload.phone = phone.trim();
+    }
+
+    // If nothing changed, exit edit mode without network call
+    if (Object.keys(payload).length === 0) {
+      setIsEditing(false);
+      return;
+    }
+
     setSavingProfile(true);
     try {
-      const updatedUser = await updateProfile({ firstName, lastName, email });
+      const updatedUser = await updateProfile(payload);
       setAuth({ user: updatedUser });
       setIsEditing(false);
     } catch (error) {
@@ -85,7 +119,6 @@ export default function ProfileClient() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-10">
-
       <ChangePasswordModal
         isOpen={isPasswordModalOpen}
         isForced={false}
@@ -145,7 +178,6 @@ export default function ProfileClient() {
             </div>
           </div>
 
-
           <div className="flex items-center gap-2">
             {!isEditing ? (
               <button
@@ -197,12 +229,24 @@ export default function ProfileClient() {
                   className="w-full px-3.5 py-2.5 rounded-xl border border-slate-800 bg-slate-950/60 text-sm text-white focus:outline-none focus:border-purple-500"
                 />
               </div>
-              <div className="sm:col-span-2">
+              <div>
                 <label className="block text-xs font-medium text-slate-400 mb-1">Email</label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-800 bg-slate-950/60 text-sm text-white focus:outline-none focus:border-purple-500"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-slate-400 mb-1">
+                  Phone Number <span className="text-slate-500 text-[10px]">(e.g. +234...)</span>
+                </label>
+                <input
+                  type="tel"
+                  placeholder="+234 801 234 5678"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
                   className="w-full px-3.5 py-2.5 rounded-xl border border-slate-800 bg-slate-950/60 text-sm text-white focus:outline-none focus:border-purple-500"
                 />
               </div>
@@ -228,10 +272,14 @@ export default function ProfileClient() {
               </div>
 
               <div className="flex items-center gap-3 p-3.5 rounded-xl border border-slate-800 bg-slate-950/50 text-sm text-slate-300">
+                <Phone className="h-4 w-4 text-purple-400 shrink-0" />
+                <span>{user.phone || "No phone number linked"}</span>
+              </div>
+
+              <div className="flex items-center gap-3 p-3.5 rounded-xl border border-slate-800 bg-slate-950/50 text-sm text-slate-300">
                 <ShieldCheck className="h-4 w-4 text-emerald-400 shrink-0" />
                 <span className="capitalize">{user.role || "Customer"} Account</span>
               </div>
-
 
               <Link
                 href="/addresses"
@@ -244,8 +292,8 @@ export default function ProfileClient() {
                 <span className="text-xs text-purple-400 font-semibold">Manage →</span>
               </Link>
 
-
               <button
+                type="button"
                 onClick={() => setIsPasswordModalOpen(true)}
                 className="w-full flex items-center justify-between p-3.5 rounded-xl border border-slate-800 bg-slate-950/50 text-sm text-slate-300 hover:border-purple-500/50 hover:text-white transition-all cursor-pointer"
               >
@@ -257,7 +305,6 @@ export default function ProfileClient() {
               </button>
             </>
           )}
-
         </div>
 
         <div className="mt-8 pt-6 border-t border-slate-800 flex justify-end">

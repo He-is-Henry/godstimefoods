@@ -4,8 +4,10 @@ import { Edit2, Loader2, Trash2, Upload, X } from "lucide-react";
 import Image from "next/image";
 import { ChangeEvent, useState } from "react";
 
+type ProductImage = { id: number; url: string; path?: string; name?: string; productImages?: unknown[] };
+
 type MediaLibraryProps = {
-  images: Image[];
+  images: ProductImage[];
   onUploadImage: (file: File, name?: string) => Promise<void>;
   onUpdateImageName: (id: number, name: string) => Promise<void>;
   onDeleteImage: (id: number) => Promise<void>;
@@ -22,11 +24,11 @@ export default function MediaLibrary({
   const [customName, setCustomName] = useState("");
   const [uploading, setUploading] = useState(false);
 
-  const [editingImage, setEditingImage] = useState<Image | null>(null);
+  const [editingImage, setEditingImage] = useState<ProductImage | null>(null);
   const [editName, setEditName] = useState("");
   const [updating, setUpdating] = useState(false);
 
-  const [deletingImage, setDeletingImage] = useState<Image | null>(null);
+  const [deletingImage, setDeletingImage] = useState<ProductImage | null>(null);
   const [deleting, setDeleting] = useState(false);
 
   const handleFileSelect = (e: ChangeEvent<HTMLInputElement>) => {
@@ -123,21 +125,24 @@ export default function MediaLibrary({
                   {linkedCount} {linkedCount === 1 ? "product" : "products"}
                 </div>
 
-                <div className="absolute top-1.5 right-1.5 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                {/* Always visible on mobile screens, hover-triggered on desktop */}
+                <div className="absolute top-1.5 right-1.5 flex gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity z-10">
                   <button
                     onClick={() => {
                       setEditingImage(img);
                       setEditName(img.name || "");
                     }}
-                    className="p-1 rounded-md bg-slate-900/80 text-slate-300 hover:text-white cursor-pointer"
+                    className="p-1.5 rounded-md bg-slate-900/90 text-slate-300 hover:text-white cursor-pointer shadow-md"
+                    title="Edit Name"
                   >
-                    <Edit2 className="h-3 w-3" />
+                    <Edit2 className="h-3.5 w-3.5" />
                   </button>
                   <button
                     onClick={() => setDeletingImage(img)}
-                    className="p-1 rounded-md bg-red-600/80 text-white cursor-pointer"
+                    className="p-1.5 rounded-md bg-red-600/90 text-white cursor-pointer shadow-md"
+                    title="Delete Image"
                   >
-                    <Trash2 className="h-3 w-3" />
+                    <Trash2 className="h-3.5 w-3.5" />
                   </button>
                 </div>
               </div>

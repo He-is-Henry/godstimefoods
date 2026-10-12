@@ -12,11 +12,12 @@ type SignupData = {
   password: string;
 };
 
-type UpdateUserData = {
+export type UpdateUserData = {
   firstName?: string;
   lastName?: string;
   email?: string;
   avatar?: string;
+  phone?: string;
 };
 
 type ChangePasswordPayload = {
@@ -41,7 +42,7 @@ export const revokeAllSessions = () =>
   apiClient.delete<Session[]>("auth/sessions/revoke/all");
 
 export const updateProfile = (data: UpdateUserData) =>
-  apiClient.patch<User>("/auth", data);
+  apiClient.patch<User>("/auth/profile", data);
 
 export const uploadAvatar = (file: File) => {
   const formData = new FormData();
