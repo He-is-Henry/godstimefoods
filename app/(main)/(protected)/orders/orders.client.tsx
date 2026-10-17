@@ -97,7 +97,9 @@ export default function OrdersClient() {
   };
 
   useEffect(() => {
-    fetchOrders();
+    const init = () => fetchOrders();
+
+    init();
   }, []);
 
   const handleClaimPayment = async (orderId: number) => {
@@ -252,19 +254,18 @@ export default function OrdersClient() {
                     </span>
 
                     <span
-                      className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${
-                        order.paid === "VERIFIED"
+                      className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${order.paid === "VERIFIED"
                           ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
                           : order.paid === "PENDING_VERIFICATION"
-                          ? "bg-amber-500/10 text-amber-400 border-amber-500/20 animate-pulse"
-                          : "bg-red-500/10 text-red-400 border-red-500/20"
-                      }`}
+                            ? "bg-amber-500/10 text-amber-400 border-amber-500/20 animate-pulse"
+                            : "bg-red-500/10 text-red-400 border-red-500/20"
+                        }`}
                     >
                       {order.paid === "VERIFIED"
                         ? "Paid & Verified"
                         : order.paid === "PENDING_VERIFICATION"
-                        ? "Payment Pending Verification"
-                        : "Unpaid"}
+                          ? "Payment Pending Verification"
+                          : "Unpaid"}
                     </span>
                   </div>
                   <p className="text-[11px] text-slate-400">{formattedDate}</p>
