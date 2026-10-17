@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { createAdminUser, Role } from "@/lib/adminUsers";
+import { createAdminUser, Role } from "@/lib/admin-users";
 import { Check, Eye, EyeOff, Loader2, UserPlus, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "react-hot-toast";

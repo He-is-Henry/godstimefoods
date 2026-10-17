@@ -25,11 +25,10 @@ export default function HomePage() {
             <button
               key={c.id}
               onClick={() => setSelectedCategory(c.id)}
-              className={`px-4 py-2 rounded-full text-xs font-semibold transition-all cursor-pointer ${
-                isActive
-                  ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md shadow-purple-900/40"
+              className={`px-4 py-2 rounded-full text-xs font-semibold transition-all cursor-pointer ${isActive
+                  ? "bg-linear-to-r from-purple-600 to-pink-600 text-white shadow-md shadow-purple-900/40"
                   : "bg-slate-900 border border-slate-800 text-slate-400 hover:text-purple-200 hover:border-purple-500/30"
-              }`}
+                }`}
             >
               {c.name}
             </button>

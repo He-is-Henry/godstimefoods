@@ -1,16 +1,21 @@
 ﻿"use client";
 
-import { getOrders } from "@/lib/orders";
+import { ApiError } from "@/lib/apiClient";
+import { cancelOrder, claimPayment, getCode, getOrders } from "@/lib/orders";
 import {
   ArrowRight,
   CheckCircle2,
+  ChevronRight,
   Clock,
+  CreditCard,
+  KeyRound,
   Loader2,
   MapPin,
   Package,
   PackageCheck,
   Phone,
   RefreshCw,
+  ShieldCheck,
   ShoppingBag,
   Truck,
   XCircle,
@@ -65,7 +70,13 @@ export default function OrdersClient() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
+  const [actionLoadingId, setActionLoadingId] = useState<number | null>(null);
 
+  // Modal State for Delivery Code
+  const [activeCodeTarget, setActiveCodeTarget] = useState<{
+    orderId: number;
+    code: string;
+  } | null>(null);
 
   const fetchOrders = async (isManual = false) => {
     if (isManual) setRefreshing(true);
@@ -73,8 +84,12 @@ export default function OrdersClient() {
       const data = await getOrders();
       setOrders(data);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Failed to load orders";
-      toast.error(msg);
+      if (err instanceof ApiError) {
+        toast.error(err.message);
+      } else {
+        const msg = err instanceof Error ? err.message : "Failed to load orders";
+        toast.error(msg);
+      }
     } finally {
       setLoading(false);
       if (isManual) setRefreshing(false);
@@ -82,10 +97,69 @@ export default function OrdersClient() {
   };
 
   useEffect(() => {
-    const initOrders = () => fetchOrders()
-
-    initOrders();
+    fetchOrders();
   }, []);
+
+  const handleClaimPayment = async (orderId: number) => {
+    setActionLoadingId(orderId);
+    try {
+      const updated = await claimPayment(orderId);
+      setOrders((prev) => prev.map((o) => (o.id === orderId ? updated : o)));
+      toast.success("Payment status updated to pending verification!");
+    } catch (err) {
+      if (err instanceof ApiError) {
+        toast.error(err.message);
+      } else {
+        toast.error("Failed to update payment status");
+      }
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
+  const handleCancelOrder = async (orderId: number) => {
+    if (!confirm("Are you sure you want to cancel this order?")) return;
+
+    setActionLoadingId(orderId);
+    try {
+      const updated = await cancelOrder(orderId);
+      setOrders((prev) => prev.map((o) => (o.id === orderId ? updated : o)));
+      toast.success("Order cancelled successfully.");
+    } catch (err) {
+      if (err instanceof ApiError) {
+        toast.error(err.message);
+      } else {
+        toast.error("Failed to cancel order");
+      }
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
+  const handleGetDeliveryCode = async (orderId: number) => {
+    setActionLoadingId(orderId);
+    try {
+      const res = await getCode(orderId);
+      setActiveCodeTarget({ orderId, code: res.code });
+      setOrders((prev) => prev.map((o) => (o.id === orderId ? res.order : o)));
+    } catch (err) {
+      if (err instanceof ApiError) {
+        toast.error(err.message);
+      } else {
+        toast.error("Failed to generate delivery code");
+      }
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
+  const getProductImage = (images: OrderProductSummary["images"]): string | null => {
+    if (Array.isArray(images)) return images[0]?.url || null;
+    if (images && typeof images === "object" && "item" in images && Array.isArray(images.item)) {
+      return images.item[0]?.url || null;
+    }
+    return null;
+  };
 
   if (loading) {
     return (
@@ -144,6 +218,8 @@ export default function OrdersClient() {
         {orders.map((order) => {
           const config = STATUS_CONFIG[order.status] || STATUS_CONFIG.PENDING;
           const StatusIcon = config.icon;
+          const isActionBusy = actionLoadingId === order.id;
+
           const formattedDate = new Date(order.createdAt).toLocaleDateString("en-NG", {
             day: "numeric",
             month: "short",
@@ -161,12 +237,34 @@ export default function OrdersClient() {
               <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800/80 pb-4">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-extrabold text-white">Order #{order.id}</span>
+                    <Link
+                      href={`/orders/${order.id}`}
+                      className="text-sm font-extrabold text-white hover:text-purple-300 transition-colors flex items-center gap-1"
+                    >
+                      Order #{order.id}
+                      <ChevronRight className="h-4 w-4 text-slate-400" />
+                    </Link>
                     <span
                       className={`flex items-center gap-1 text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${config.bg} ${config.text} ${config.border}`}
                     >
                       <StatusIcon className="h-3 w-3" />
                       {config.label}
+                    </span>
+
+                    <span
+                      className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${
+                        order.paid === "VERIFIED"
+                          ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                          : order.paid === "PENDING_VERIFICATION"
+                          ? "bg-amber-500/10 text-amber-400 border-amber-500/20 animate-pulse"
+                          : "bg-red-500/10 text-red-400 border-red-500/20"
+                      }`}
+                    >
+                      {order.paid === "VERIFIED"
+                        ? "Paid & Verified"
+                        : order.paid === "PENDING_VERIFICATION"
+                        ? "Payment Pending Verification"
+                        : "Unpaid"}
                     </span>
                   </div>
                   <p className="text-[11px] text-slate-400">{formattedDate}</p>
@@ -196,7 +294,7 @@ export default function OrdersClient() {
               {/* Order Items */}
               <div className="space-y-2.5 pt-1">
                 {order.items.map((item) => {
-                  const imgUrl = item.product.images?.[0]?.url;
+                  const imgUrl = getProductImage(item.product.images);
                   return (
                     <div
                       key={item.id}
@@ -235,14 +333,61 @@ export default function OrdersClient() {
               </div>
 
               {/* Action Footer */}
-              <div className="pt-2 flex items-center justify-between border-t border-slate-800/60 text-xs">
-                <span className="text-[11px] text-slate-400">
-                  Status: <strong className="text-slate-200">{config.label}</strong>
-                </span>
+              <div className="pt-3 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-3 text-xs">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Link
+                    href={`/orders/${order.id}`}
+                    className="px-3 py-1.5 rounded-xl border border-purple-500/30 bg-purple-950/40 hover:bg-purple-900/50 text-purple-200 font-bold text-xs transition-all flex items-center gap-1"
+                  >
+                    View Details
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </Link>
+
+                  {/* Delivery Code Action */}
+                  {order.status !== "CANCELLED" && (
+                    <button
+                      type="button"
+                      onClick={() => handleGetDeliveryCode(order.id)}
+                      disabled={isActionBusy}
+                      className="px-3 py-1.5 rounded-xl bg-pink-600 hover:bg-pink-500 text-white font-bold text-xs transition-all cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+                    >
+                      {isActionBusy ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <KeyRound className="h-3.5 w-3.5" />
+                      )}
+                      Show Delivery Code
+                    </button>
+                  )}
+
+                  {/* Claim Payment Action */}
+                  {order.paid === "UNPAID" && order.status !== "CANCELLED" && (
+                    <button
+                      type="button"
+                      onClick={() => handleClaimPayment(order.id)}
+                      disabled={isActionBusy}
+                      className="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs transition-all cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+                    >
+                      <CreditCard className="h-3.5 w-3.5" /> I Have Paid
+                    </button>
+                  )}
+
+                  {/* Cancel Order Action */}
+                  {order.status === "PENDING" && (
+                    <button
+                      type="button"
+                      onClick={() => handleCancelOrder(order.id)}
+                      disabled={isActionBusy}
+                      className="px-3 py-1.5 rounded-xl border border-red-500/30 bg-red-950/30 hover:bg-red-900/40 text-red-300 font-semibold text-xs transition-all cursor-pointer disabled:opacity-50"
+                    >
+                      Cancel Order
+                    </button>
+                  )}
+                </div>
 
                 <a
                   href="tel:09034830924"
-                  className="flex items-center gap-1.5 text-purple-400 hover:text-purple-300 font-semibold transition-colors"
+                  className="flex items-center gap-1.5 text-purple-400 hover:text-purple-300 font-semibold transition-colors ml-auto"
                 >
                   <Phone className="h-3.5 w-3.5" /> Contact Support
                 </a>
@@ -251,6 +396,38 @@ export default function OrdersClient() {
           );
         })}
       </div>
+
+      {/* Customer Delivery Code Modal */}
+      {activeCodeTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="w-full max-w-sm p-6 space-y-4 rounded-2xl bg-slate-900 border border-purple-500/30 shadow-2xl text-center">
+            <div className="flex items-center justify-center gap-2 text-pink-400 font-bold text-base border-b border-slate-800 pb-3">
+              <ShieldCheck className="h-5 w-5" />
+              <span>Delivery Security Code</span>
+            </div>
+
+            <p className="text-xs text-slate-300">
+              Provide this 4-digit code to the delivery rider when receiving Order #{activeCodeTarget.orderId}.
+            </p>
+
+            <div className="p-4 rounded-2xl bg-slate-950 border border-purple-500/40 tracking-widest text-4xl font-extrabold text-pink-400 font-mono shadow-inner">
+              {activeCodeTarget.code}
+            </div>
+
+            <p className="text-[11px] text-amber-400/90 italic">
+              Do not share this code until you inspect and accept your food delivery.
+            </p>
+
+            <button
+              type="button"
+              onClick={() => setActiveCodeTarget(null)}
+              className="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs transition-all cursor-pointer"
+            >
+              Done
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -8,7 +8,7 @@ import {
   Role,
   toggleUserActive,
   updateUserRole,
-} from "@/lib/adminUsers";
+} from "@/lib/admin-users";
 import {
   CheckCircle2,
   KeyRound,

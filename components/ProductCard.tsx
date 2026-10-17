@@ -14,9 +14,19 @@ type Props = {
 export default function ProductCard({ product, setCategory }: Props) {
   const router = useRouter();
   const { addItemToCart, updateCartItem, cart } = useCart();
-  const [quantity, setQuantity] = useState<number>(1);
 
-  const alreadyIncart = cart.find((c) => c.productId === product.id);
+  const alreadyInCart = cart.find((c) => c.productId === product.id);
+  const cartQuantity = alreadyInCart?.quantity;
+
+  const [prevCartQuantity, setPrevCartQuantity] = useState(cartQuantity);
+  const [inputValue, setInputValue] = useState<string>(
+    cartQuantity ? String(cartQuantity) : "1"
+  );
+
+  if (cartQuantity !== prevCartQuantity) {
+    setPrevCartQuantity(cartQuantity);
+    setInputValue(cartQuantity !== undefined ? String(cartQuantity) : "1");
+  }
 
   const isOutOfStock =
     !product.isAvailable ||
@@ -26,19 +36,56 @@ export default function ProductCard({ product, setCategory }: Props) {
     router.push(`/products/${product.id}`);
   };
 
-  const handleQuantityInput = (val: string) => {
-    const parsed = parseInt(val, 10);
-    if (isNaN(parsed) || parsed < 1) {
-      setQuantity(1);
-    } else {
-      setQuantity(parsed);
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawVal = e.target.value;
+    if (rawVal === "" || /^\d+$/.test(rawVal)) {
+      setInputValue(rawVal);
     }
+  };
+
+  const commitQuantity = (rawVal: string) => {
+    const parsed = parseInt(rawVal, 10);
+    const finalQty = isNaN(parsed) || parsed < 1 ? 1 : parsed;
+
+    setInputValue(String(finalQty));
+
+    if (alreadyInCart && finalQty !== cartQuantity) {
+      updateCartItem(alreadyInCart.id, finalQty);
+    }
+  };
+
+  const handleInputBlur = () => {
+    commitQuantity(inputValue);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      commitQuantity(inputValue);
+      (e.target as HTMLInputElement).blur();
+    }
+  };
+
+  const handleQuantityStep = (delta: number) => {
+    const current = parseInt(inputValue, 10) || 1;
+    const nextVal = Math.max(1, current + delta);
+    setInputValue(String(nextVal));
+
+    if (alreadyInCart && nextVal !== cartQuantity) {
+      updateCartItem(alreadyInCart.id, nextVal);
+    }
+  };
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const qty = parseInt(inputValue, 10) || 1;
+    addItemToCart(product, qty);
   };
 
   const handleInstantOrder = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (isOutOfStock) return;
-    router.push(`/checkout?productId=${product.id}&quantity=${quantity}`);
+    const qty = parseInt(inputValue, 10) || 1;
+    router.push(`/checkout?productId=${product.id}&quantity=${qty}`);
   };
 
   return (
@@ -106,35 +153,6 @@ export default function ProductCard({ product, setCategory }: Props) {
                 ₦{product.price.toLocaleString()}
               </span>
             </div>
-
-            {!isOutOfStock && (
-              <div
-                onClick={(e) => e.stopPropagation()}
-                className="flex items-center rounded-lg border border-purple-500/30 bg-slate-950 px-1 py-0.5"
-              >
-                <button
-                  type="button"
-                  onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                  className="p-1 text-slate-400 hover:text-white transition-colors cursor-pointer"
-                >
-                  <Minus className="h-3 w-3" />
-                </button>
-                <input
-                  type="number"
-                  min={1}
-                  value={quantity}
-                  onChange={(e) => handleQuantityInput(e.target.value)}
-                  className="w-8 text-center text-xs font-bold text-white bg-transparent focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                />
-                <button
-                  type="button"
-                  onClick={() => setQuantity((q) => q + 1)}
-                  className="p-1 text-slate-400 hover:text-white transition-colors cursor-pointer"
-                >
-                  <Plus className="h-3 w-3" />
-                </button>
-              </div>
-            )}
           </div>
 
           {isOutOfStock ? (
@@ -147,27 +165,57 @@ export default function ProductCard({ product, setCategory }: Props) {
             </button>
           ) : (
             <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (alreadyIncart) updateCartItem(product.id, quantity);
-                  else addItemToCart(product, quantity);
-                }}
-                className="flex-1 flex items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold text-white bg-purple-600 hover:bg-purple-500 shadow-lg shadow-purple-900/30 active:scale-95 cursor-pointer transition-all"
-              >
-                <ShoppingCart className="h-3.5 w-3.5" />
-                {alreadyIncart ? `Update (${quantity})` : `Add (${quantity})`}
-              </button>
+              {alreadyInCart ? (
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  className="flex-1 flex items-center justify-between rounded-xl border border-purple-500/40 bg-purple-950/40 px-2.5 py-1.5 min-h-9.5"
+                >
+                  <button
+                    type="button"
+                    onClick={() => handleQuantityStep(-1)}
+                    className="p-1 text-purple-300 hover:text-white transition-colors cursor-pointer"
+                  >
+                    <Minus className="h-4 w-4" />
+                  </button>
+
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    value={inputValue}
+                    onChange={handleInputChange}
+                    onBlur={handleInputBlur}
+                    onKeyDown={handleKeyDown}
+                    className="w-12 text-center text-sm font-bold text-white bg-transparent focus:outline-none"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => handleQuantityStep(1)}
+                    className="p-1 text-purple-300 hover:text-white transition-colors cursor-pointer"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleAddToCart}
+                  className="flex-1 flex items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 text-xs font-semibold text-white bg-purple-600 hover:bg-purple-500 shadow-lg shadow-purple-900/30 active:scale-95 cursor-pointer transition-all min-h-9.5"
+                >
+                  <ShoppingCart className="h-3.5 w-3.5" />
+                  Add to Cart
+                </button>
+              )}
 
               <button
                 type="button"
                 onClick={handleInstantOrder}
-                className="flex items-center justify-center gap-1 rounded-xl px-3 py-2 text-xs font-bold text-white bg-pink-600 hover:bg-pink-500 shadow-md shadow-pink-950/40 active:scale-95 cursor-pointer transition-all shrink-0"
+                className="flex items-center justify-center gap-1 rounded-xl px-3.5 py-2.5 text-xs font-bold text-white bg-pink-600 hover:bg-pink-500 shadow-md shadow-pink-950/40 active:scale-95 cursor-pointer transition-all shrink-0 min-h-9.5"
                 title="Instant Order"
               >
                 <Zap className="h-3.5 w-3.5 fill-current text-pink-200" />
-                Buy ({quantity})
+                Buy
               </button>
             </div>
           )}

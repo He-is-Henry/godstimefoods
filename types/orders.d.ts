@@ -13,7 +13,7 @@ type OrderProductImage = {
 type OrderProductSummary = {
   name: string;
   description: string | null;
-  images: OrderProductImage[];
+  images: OrderProductImage[] | { item: OrderProductImage[] };
 };
 
 type OrderItem = {
@@ -29,7 +29,7 @@ type Order = {
   id: number;
   customerId: number;
   status: OrderStatus;
-  isPaid: boolean;
+  paid: "UNPAID" | "PENDING_VERIFICATION" | "VERIFIED";
   totalAmount: number;
   deliveryAddress: string;
   confirmationCodeHash: string | null;
@@ -38,6 +38,11 @@ type Order = {
   deliveredAt: string | null;
   createdAt: string;
   updatedAt: string;
+  confirmedById: number | null;
+  deliveredById: number | null;
+  cancelledById: number | null;
+  paidById: number | null;
+  assignedToId: number | null;
   items: OrderItem[];
 };
 
@@ -51,10 +56,17 @@ type OrderCustomerSummary = {
   id: number;
   firstName: string;
   lastName: string;
-  phone: string | null;
+  phone?: string | null;
   email: string;
 };
 
+type OrderManagementSummary = OrderCustomerSummary | null;
+
 type AdminOrder = Order & {
   customer: OrderCustomerSummary;
+  confirmedBy: OrderManagementSummary;
+  deliveredBy: OrderManagementSummary;
+  cancelledBy: OrderManagementSummary;
+  paidBy: OrderManagementSummary;
+  assignedTo: OrderManagementSummary;
 };
