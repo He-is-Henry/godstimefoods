@@ -1,7 +1,8 @@
 ﻿"use client";
 
+import PaymentModal from "@/components/orders/PaymentModal";
 import { ApiError } from "@/lib/apiClient";
-import { cancelOrder, claimPayment, getCode, getOrders } from "@/lib/orders";
+import { cancelOrder, getCode, getOrders } from "@/lib/orders";
 import {
   ArrowRight,
   CheckCircle2,
@@ -72,11 +73,12 @@ export default function OrdersClient() {
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [actionLoadingId, setActionLoadingId] = useState<number | null>(null);
 
-  // Modal State for Delivery Code
+  // Modal States
   const [activeCodeTarget, setActiveCodeTarget] = useState<{
     orderId: number;
     code: string;
   } | null>(null);
+  const [paymentTargetOrder, setPaymentTargetOrder] = useState<Order | null>(null);
 
   const fetchOrders = async (isManual = false) => {
     if (isManual) setRefreshing(true);
@@ -98,26 +100,8 @@ export default function OrdersClient() {
 
   useEffect(() => {
     const init = () => fetchOrders();
-
     init();
   }, []);
-
-  const handleClaimPayment = async (orderId: number) => {
-    setActionLoadingId(orderId);
-    try {
-      const updated = await claimPayment(orderId);
-      setOrders((prev) => prev.map((o) => (o.id === orderId ? updated : o)));
-      toast.success("Payment status updated to pending verification!");
-    } catch (err) {
-      if (err instanceof ApiError) {
-        toast.error(err.message);
-      } else {
-        toast.error("Failed to update payment status");
-      }
-    } finally {
-      setActionLoadingId(null);
-    }
-  };
 
   const handleCancelOrder = async (orderId: number) => {
     if (!confirm("Are you sure you want to cancel this order?")) return;
@@ -254,18 +238,19 @@ export default function OrdersClient() {
                     </span>
 
                     <span
-                      className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${order.paid === "VERIFIED"
+                      className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${
+                        order.paid === "VERIFIED"
                           ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
                           : order.paid === "PENDING_VERIFICATION"
-                            ? "bg-amber-500/10 text-amber-400 border-amber-500/20 animate-pulse"
-                            : "bg-red-500/10 text-red-400 border-red-500/20"
-                        }`}
+                          ? "bg-amber-500/10 text-amber-400 border-amber-500/20 animate-pulse"
+                          : "bg-red-500/10 text-red-400 border-red-500/20"
+                      }`}
                     >
                       {order.paid === "VERIFIED"
                         ? "Paid & Verified"
                         : order.paid === "PENDING_VERIFICATION"
-                          ? "Payment Pending Verification"
-                          : "Unpaid"}
+                        ? "Payment Pending Verification"
+                        : "Unpaid"}
                     </span>
                   </div>
                   <p className="text-[11px] text-slate-400">{formattedDate}</p>
@@ -361,15 +346,15 @@ export default function OrdersClient() {
                     </button>
                   )}
 
-                  {/* Claim Payment Action */}
+                  {/* Open Payment Modal Button */}
                   {order.paid === "UNPAID" && order.status !== "CANCELLED" && (
                     <button
                       type="button"
-                      onClick={() => handleClaimPayment(order.id)}
+                      onClick={() => setPaymentTargetOrder(order)}
                       disabled={isActionBusy}
                       className="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs transition-all cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
                     >
-                      <CreditCard className="h-3.5 w-3.5" /> I Have Paid
+                      <CreditCard className="h-3.5 w-3.5" /> Pay / Bank Info
                     </button>
                   )}
 
@@ -397,6 +382,19 @@ export default function OrdersClient() {
           );
         })}
       </div>
+
+      {/* Payment Modal */}
+      {paymentTargetOrder && (
+        <PaymentModal
+          order={paymentTargetOrder}
+          onClose={() => setPaymentTargetOrder(null)}
+          onSuccess={(updatedOrder) => {
+            setOrders((prev) =>
+              prev.map((o) => (o.id === updatedOrder.id ? updatedOrder : o))
+            );
+          }}
+        />
+      )}
 
       {/* Customer Delivery Code Modal */}
       {activeCodeTarget && (

@@ -1,7 +1,8 @@
 ﻿"use client";
 
+import PaymentModal from "@/components/orders/PaymentModal";
 import { ApiError } from "@/lib/apiClient";
-import { cancelOrder, claimPayment, getCode, getOrder } from "@/lib/orders";
+import { cancelOrder, getCode, getOrder } from "@/lib/orders";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -72,8 +73,9 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
   const [loading, setLoading] = useState<boolean>(true);
   const [actionLoading, setActionLoading] = useState<boolean>(false);
 
-  // Delivery code popup modal state
+  // Modals
   const [activeCode, setActiveCode] = useState<string | null>(null);
+  const [showPaymentModal, setShowPaymentModal] = useState<boolean>(false);
 
   const fetchOrder = async () => {
     try {
@@ -91,26 +93,9 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
   };
 
   useEffect(() => {
-    if (orderId) fetchOrder();
+    const init = () => fetchOrder();
+    if (orderId) init();
   }, [orderId]);
-
-  const handleClaimPayment = async () => {
-    if (!order) return;
-    setActionLoading(true);
-    try {
-      const updated = await claimPayment(order.id);
-      setOrder(updated);
-      toast.success("Payment status updated to pending verification!");
-    } catch (err) {
-      if (err instanceof ApiError) {
-        toast.error(err.message);
-      } else {
-        toast.error("Failed to update payment status");
-      }
-    } finally {
-      setActionLoading(false);
-    }
-  };
 
   const handleCancelOrder = async () => {
     if (!order) return;
@@ -335,15 +320,15 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
               </button>
             )}
 
-            {/* Claim Payment */}
+            {/* Pay / Bank Info Button */}
             {order.paid === "UNPAID" && order.status !== "CANCELLED" && (
               <button
                 type="button"
-                onClick={handleClaimPayment}
+                onClick={() => setShowPaymentModal(true)}
                 disabled={actionLoading}
                 className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs transition-all cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
               >
-                <CreditCard className="h-3.5 w-3.5" /> I Have Paid
+                <CreditCard className="h-3.5 w-3.5" /> Pay / Bank Info
               </button>
             )}
 
@@ -361,6 +346,15 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
           </div>
         </div>
       </div>
+
+      {/* Payment Modal */}
+      {showPaymentModal && order && (
+        <PaymentModal
+          order={order}
+          onClose={() => setShowPaymentModal(false)}
+          onSuccess={(updatedOrder) => setOrder(updatedOrder)}
+        />
+      )}
 
       {/* Customer Delivery Code Modal */}
       {activeCode && (
