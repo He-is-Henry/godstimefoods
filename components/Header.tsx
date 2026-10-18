@@ -2,6 +2,7 @@
 
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
+import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 import { Shield, ShoppingBag, ShoppingCart, User as UserIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -10,13 +11,14 @@ export default function Header() {
   const pathname = usePathname();
   const { user, loading: authLoading } = useAuth();
   const { count } = useCart();
+  const { unreadCount } = useUnreadMessages();
 
   const isStaff = user?.role === "ADMIN" || user?.role === "MANAGER";
 
   const navLinks = [
     { label: "Home", href: "/" },
     { label: "Orders", href: "/orders" },
-    { label: "Messages", href: "/inbox" },
+    { label: "Messages", href: "/inbox", badge: unreadCount },
   ];
 
   return (
@@ -45,12 +47,18 @@ export default function Header() {
                   <Link
                     key={link.href}
                     href={link.href}
-                    className={`transition-colors hover:text-purple-300 ${isActive
+                    className={`transition-colors hover:text-purple-300 flex items-center gap-1.5 ${
+                      isActive
                         ? "text-purple-400 font-bold"
                         : "text-slate-300"
-                      }`}
+                    }`}
                   >
-                    {link.label}
+                    <span>{link.label}</span>
+                    {link.badge !== undefined && link.badge > 0 && (
+                      <span className="px-1.5 py-0.2 text-[10px] font-bold rounded-full bg-pink-600 text-white shadow-sm shadow-pink-950">
+                        {link.badge}
+                      </span>
+                    )}
                   </Link>
                 );
               })}
