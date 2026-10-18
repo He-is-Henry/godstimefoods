@@ -1,4 +1,5 @@
 interface Message {
+  id: number;
   userId: number;
   action:
     | "ORDER_CONFIRMED"

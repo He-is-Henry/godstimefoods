@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import { useCart } from "@/context/CartContext";
-import { useUnreadMessages } from "@/hooks/useUnreadMessages";
+import { useUnreadMessages } from "@/context/MessagesContext"
 import { Home, MessageSquare, Package, ShoppingBag, User as UserIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -30,9 +30,8 @@ export default function BottomNav() {
             <Link
               key={item.href}
               href={item.href}
-              className={`relative flex flex-col items-center gap-1 py-1 px-2 rounded-xl transition-all ${
-                isActive ? "text-purple-400 font-bold" : "text-slate-400 hover:text-slate-200"
-              }`}
+              className={`relative flex flex-col items-center gap-1 py-1 px-2 rounded-xl transition-all ${isActive ? "text-purple-400 font-bold" : "text-slate-400 hover:text-slate-200"
+                }`}
             >
               <div className="relative">
                 <Icon className="h-5 w-5" />

@@ -1,5 +1,6 @@
 ﻿"use client";
 
+import { useUnreadMessages } from "@/context/MessagesContext";
 import { ApiError } from "@/lib/apiClient";
 import { getMessages, markAllAsRead, readMessage } from "@/lib/messages";
 import {
@@ -79,7 +80,7 @@ const ACTION_CONFIG: Record<
 export default function InboxClient() {
   const [activeTab, setActiveTab] = useState<TabType>("unread");
   const [messages, setMessages] = useState<Message[]>([]);
-  const [unreadCount, setUnreadCount] = useState<number>(0);
+  const { unreadCount, setUnreadCount, decrementUnread, clearUnread } = useUnreadMessages();
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [markingAll, setMarkingAll] = useState<boolean>(false);
@@ -113,10 +114,12 @@ export default function InboxClient() {
 
   useEffect(() => {
     const init = () => fetchMessagesList();
+
     init();
   }, [activeTab]);
 
   const handleMarkAllRead = async () => {
+    if (unreadCount === 0) return;
     setMarkingAll(true);
     try {
       await markAllAsRead();
@@ -127,7 +130,7 @@ export default function InboxClient() {
       } else {
         setMessages((prev) => prev.map((m) => ({ ...m, read: true })));
       }
-      setUnreadCount(0);
+      clearUnread();
     } catch (err) {
       if (err instanceof ApiError) {
         toast.error(err.message);
@@ -142,13 +145,15 @@ export default function InboxClient() {
   const handleMessageClick = async (msg: Message) => {
     if (!msg.read) {
       try {
-        await readMessage((msg as Message & { id?: number }).id || msg.orderId);
+        await readMessage(msg.id);
+
         setMessages((prev) =>
-          prev.map((m) =>
-            m === msg ? { ...m, read: true } : m
-          )
+          activeTab === "unread"
+            ? prev.filter((m) => m.id !== msg.id)
+            : prev.map((m) => (m.id === msg.id ? { ...m, read: true } : m))
         );
-        setUnreadCount((prev) => Math.max(0, prev - 1));
+
+        decrementUnread();
       } catch (err) {
         console.error("Failed to mark message read:", err);
       }
@@ -218,8 +223,8 @@ export default function InboxClient() {
           type="button"
           onClick={() => setActiveTab("unread")}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${activeTab === "unread"
-              ? "bg-purple-600 text-white shadow-lg shadow-purple-950/50"
-              : "bg-slate-900/60 text-slate-400 hover:text-white hover:bg-slate-800"
+            ? "bg-purple-600 text-white shadow-lg shadow-purple-950/50"
+            : "bg-slate-900/60 text-slate-400 hover:text-white hover:bg-slate-800"
             }`}
         >
           Unread
@@ -228,8 +233,8 @@ export default function InboxClient() {
           type="button"
           onClick={() => setActiveTab("all")}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${activeTab === "all"
-              ? "bg-purple-600 text-white shadow-lg shadow-purple-950/50"
-              : "bg-slate-900/60 text-slate-400 hover:text-white hover:bg-slate-800"
+            ? "bg-purple-600 text-white shadow-lg shadow-purple-950/50"
+            : "bg-slate-900/60 text-slate-400 hover:text-white hover:bg-slate-800"
             }`}
         >
           All Notifications
@@ -279,7 +284,7 @@ export default function InboxClient() {
       ) : (
         /* Messages List */
         <div className="space-y-3">
-          {messages.map((msg, index) => {
+          {messages.map((msg) => {
             const config = ACTION_CONFIG[msg.action] || ACTION_CONFIG.ORDER_CONFIRMED;
             const ActionIcon = config.icon;
             const firstItemImage = msg.order?.items?.[0]
@@ -289,16 +294,14 @@ export default function InboxClient() {
               ? getItemSummary(msg.order.items)
               : "Food Order";
 
-            const messageId = (msg as Message & { id?: number }).id || index;
-
             return (
               <Link
-                key={messageId}
+                key={msg.id}
                 href={`/orders/${msg.orderId}`}
                 onClick={() => handleMessageClick(msg)}
                 className={`group block rounded-2xl border p-4 transition-all duration-200 backdrop-blur-xl relative overflow-hidden ${!msg.read
-                    ? "bg-slate-900/90 border-purple-500/40 shadow-lg shadow-purple-950/20 hover:border-pink-500/50"
-                    : "bg-slate-900/40 border-slate-800/80 hover:border-slate-700 opacity-80 hover:opacity-100"
+                  ? "bg-slate-900/90 border-purple-500/40 shadow-lg shadow-purple-950/20 hover:border-pink-500/50"
+                  : "bg-slate-900/40 border-slate-800/80 hover:border-slate-700 opacity-80 hover:opacity-100"
                   }`}
               >
                 {/* Unread Accent Dot */}
@@ -361,7 +364,7 @@ export default function InboxClient() {
                         <ShoppingBag className="h-5 w-5" />
                       </div>
                     )}
-                    <ChevronRight className=" h-5 w-5 text-slate-500 group-hover:text-purple-400 transition-colors" />
+                    <ChevronRight className="h-5 w-5 text-slate-500 group-hover:text-purple-400 transition-colors" />
                   </div>
                 </div>
               </Link>

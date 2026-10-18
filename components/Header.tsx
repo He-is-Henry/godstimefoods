@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
-import { useUnreadMessages } from "@/hooks/useUnreadMessages";
+import { useUnreadMessages } from "@/context/MessagesContext"
 import { Shield, ShoppingBag, ShoppingCart, User as UserIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
