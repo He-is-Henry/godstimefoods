@@ -6,6 +6,7 @@ import axios, {
 } from "axios";
 
 import { useTokenStore } from "@/store/useTokenStore";
+import { registerPushNotifications } from "./push";
 
 declare module "axios" {
   interface InternalAxiosRequestConfig {
@@ -100,6 +101,7 @@ api.interceptors.response.use(
         const { accessToken } = res.data;
 
         useTokenStore.getState().setToken(accessToken);
+        registerPushNotifications();
 
         isRefreshing = false;
 

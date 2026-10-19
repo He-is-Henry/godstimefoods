@@ -1,6 +1,7 @@
 "use client";
 
 import { api } from "@/lib/axios";
+import { registerPushNotifications } from "@/lib/push";
 import { useTokenStore } from "@/store/useTokenStore";
 import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from "react";
 
@@ -27,6 +28,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const res = await api.get('/auth/profile');
       const user: User = res.data;
+
+      registerPushNotifications();
 
       setUser(user)
 
