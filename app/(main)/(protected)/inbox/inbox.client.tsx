@@ -217,8 +217,8 @@ export default function InboxClient() {
           </button>
         </div>
       </div>
-      <NotificationStatus />
 
+      <NotificationStatus />
       {/* Tabs Bar */}
       <div className="flex items-center gap-2 border-b border-slate-800/80 pb-3">
         <button
