@@ -21,9 +21,34 @@ export const getCode = (id: number) =>
   apiClient.patch<{ code: string; order: Order }>(`/orders/${id}/code`);
 
 // admins and managers
-export const getAdminOrders = () =>
-  apiClient.get<AdminOrder[]>("/admin/orders");
+export interface PaginatedAdminOrders {
+  data: AdminOrder[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}
 
+export const getAdminOrders = (params?: {
+  page?: number;
+  limit?: number;
+  status?: string;
+  search?: string;
+}) => {
+  const searchParams = new URLSearchParams();
+  if (params?.page) searchParams.set("page", params.page.toString());
+  if (params?.limit) searchParams.set("limit", params.limit.toString());
+  if (params?.status && params.status !== "ALL")
+    searchParams.set("status", params.status);
+  if (params?.search) searchParams.set("search", params.search);
+
+  const query = searchParams.toString();
+  return apiClient.get<PaginatedAdminOrders>(
+    `/admin/orders${query ? `?${query}` : ""}`,
+  );
+};
 export const getAdminOrder = (id: number) =>
   apiClient.get<AdminOrder>(`/admin/orders/${id}`);
 
