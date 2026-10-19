@@ -8,6 +8,7 @@ import { updateProfile, uploadAvatar, UpdateUserData } from "@/lib/auth";
 import {
   Camera,
   Check,
+  Download,
   KeyRound,
   LayoutDashboard,
   LogOut,
@@ -305,8 +306,18 @@ export default function ProfileClient() {
                 <span className="text-xs text-purple-400 font-semibold">Change Password →</span>
               </button>
 
-
               <NotificationStatus />
+
+              <Link
+                href="/install"
+                className="flex items-center justify-between p-3.5 rounded-xl border border-slate-800 bg-slate-950/50 text-sm text-slate-300 hover:border-purple-500/50 hover:text-white transition-all"
+              >
+                <div className="flex items-center gap-3">
+                  <Download className="h-4 w-4 text-purple-400 shrink-0" />
+                  <span>App Installation</span>
+                </div>
+                <span className="text-xs text-purple-400 font-semibold">Install App →</span>
+              </Link>
             </>
           )}
         </div>

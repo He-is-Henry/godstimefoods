@@ -6,6 +6,7 @@ import { Toaster } from "react-hot-toast";
 import MustChangePasswordBanner from "@/components/auth/MustChangePasswordBanner";
 import CartContextProvider from "@/context/CartContext";
 import { MessagesProvider } from "@/context/MessagesContext";
+import InstallBanner from "@/components/InstallBanner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -50,13 +51,16 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <AuthProvider>
       <CartContextProvider>
         <MessagesProvider>
-          <MustChangePasswordBanner />
-          <Toaster />
           <html
             lang="en"
             className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
           >
-            <body className="min-h-full flex flex-col">{children}</body>
+            <body className="min-h-full flex flex-col">
+              <MustChangePasswordBanner />
+              <Toaster />
+              {children}
+              <InstallBanner />
+            </body>
           </html>
         </MessagesProvider>
       </CartContextProvider>
