@@ -62,12 +62,14 @@ export default function AdminOrdersClient() {
 
   const handleStatusChange = (status: string) => {
     setSelectedStatus(status);
-    setPage(1); // Reset to page 1 on filter change
+    setPage(1);
+    // Reset to page 1 on filter change
   };
 
   const handleSearchChange = (query: string) => {
     setSearchQuery(query);
-    setPage(1); // Reset to page 1 on search change
+    setPage(1);
+    // Reset to page 1 on search change
   };
 
   const handleUpdateOrder = (updated: AdminOrder) => {

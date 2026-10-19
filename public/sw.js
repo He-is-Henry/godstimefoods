@@ -3,10 +3,15 @@ self.addEventListener("push", (event) => {
 
   const data = event.data.json();
 
+  const hasTag = Boolean(data.tag);
+  const shouldRenotify = hasTag && Boolean(data.renotify);
+
   const options = {
     body: data.body,
-    icon: data.icon || "/icon.png", // Fallback to your default app icon
-    badge: "/badge.png",
+    icon: data.icon || "/icon.png",
+    badge: data.badge || "/badge.png",
+    ...(hasTag && { tag: data.tag }),
+    ...(hasTag && { renotify: shouldRenotify }),
     data: {
       url: data.url || "/",
     },
@@ -25,7 +30,7 @@ self.addEventListener("notificationclick", (event) => {
       .matchAll({ type: "window", includeUncontrolled: true })
       .then((windowClients) => {
         for (const client of windowClients) {
-          if (client.url === targetUrl && "focus" in client) {
+          if (client.url.includes(targetUrl) && "focus" in client) {
             return client.focus();
           }
         }
