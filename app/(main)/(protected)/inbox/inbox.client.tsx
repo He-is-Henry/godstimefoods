@@ -1,5 +1,6 @@
 ﻿"use client";
 
+import NotificationStatus from "@/components/NotificationStatus";
 import { useUnreadMessages } from "@/context/MessagesContext";
 import { ApiError } from "@/lib/apiClient";
 import { getMessages, markAllAsRead, readMessage } from "@/lib/messages";
@@ -216,6 +217,7 @@ export default function InboxClient() {
           </button>
         </div>
       </div>
+      <NotificationStatus />
 
       {/* Tabs Bar */}
       <div className="flex items-center gap-2 border-b border-slate-800/80 pb-3">

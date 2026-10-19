@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import ChangePasswordModal from "@/components/auth/ChangePasswordModal";
+import NotificationStatus from "@/components/NotificationStatus";
 import SessionManager from "@/components/SessionManager";
 import { useAuth } from "@/context/AuthContext";
 import { updateProfile, uploadAvatar, UpdateUserData } from "@/lib/auth";
@@ -303,6 +304,9 @@ export default function ProfileClient() {
                 </div>
                 <span className="text-xs text-purple-400 font-semibold">Change Password →</span>
               </button>
+
+
+              <NotificationStatus />
             </>
           )}
         </div>
