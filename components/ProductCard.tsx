@@ -1,225 +1,204 @@
 ﻿"use client";
 
 import { useCart } from "@/context/CartContext";
-import { Camera, Minus, Plus, ShoppingCart, Zap } from "lucide-react";
+import { Camera, Minus, Plus, ShoppingCart, Trash2, Zap } from "lucide-react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 
 type Props = {
   product: Product;
-  setCategory: (categoryId: number) => void;
 };
 
-export default function ProductCard({ product, setCategory }: Props) {
-  const router = useRouter();
-  const { addItemToCart, updateCartItem, cart } = useCart();
+const LOW_STOCK_THRESHOLD = 10;
+const SYNC_DELAY_MS = 400;
 
-  const alreadyInCart = cart.find((c) => c.productId === product.id);
-  const cartQuantity = alreadyInCart?.quantity;
+export default function ProductCard({ product }: Props) {
+  const { addItemToCart, updateCartItem, removeItemFromCart, cart } = useCart();
 
-  const [prevCartQuantity, setPrevCartQuantity] = useState(cartQuantity);
-  const [inputValue, setInputValue] = useState<string>(
-    cartQuantity ? String(cartQuantity) : "1"
+  const cartItem = cart.find((c) => c.productId === product.id);
+  const [localQty, setLocalQty] = useState(cartItem?.quantity ?? 1);
+  const syncTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Follow external cart changes (e.g. cleared from the navbar)
+  useEffect(() => {
+    setLocalQty(cartItem?.quantity ?? 1);
+  }, [cartItem?.quantity]);
+
+  // Clear any pending sync on unmount
+  useEffect(
+    () => () => {
+      if (syncTimer.current) clearTimeout(syncTimer.current);
+    },
+    []
   );
 
-  if (cartQuantity !== prevCartQuantity) {
-    setPrevCartQuantity(cartQuantity);
-    setInputValue(cartQuantity !== undefined ? String(cartQuantity) : "1");
-  }
-
+  const maxAvailable = product.availableQuantity ?? Infinity;
   const isOutOfStock =
     !product.isAvailable ||
     (product.availableQuantity !== null && product.availableQuantity <= 0);
+  const isLowStock =
+    !isOutOfStock &&
+    product.availableQuantity !== null &&
+    product.availableQuantity < LOW_STOCK_THRESHOLD;
 
-  const handleCardClick = () => {
-    router.push(`/products/${product.id}`);
-  };
+  const handleStep = (delta: number) => {
+    if (!cartItem) return;
+    if (syncTimer.current) clearTimeout(syncTimer.current);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const rawVal = e.target.value;
-    if (rawVal === "" || /^\d+$/.test(rawVal)) {
-      setInputValue(rawVal);
+    // Stepping below 1 removes immediately (no "0 in cart" flicker)
+    if (localQty + delta < 1) {
+      removeItemFromCart(cartItem.id);
+      return;
     }
+
+    const next = Math.min(localQty + delta, maxAvailable);
+    setLocalQty(next);
+    syncTimer.current = setTimeout(
+      () => updateCartItem(cartItem.id, next),
+      SYNC_DELAY_MS
+    );
   };
 
-  const commitQuantity = (rawVal: string) => {
-    const parsed = parseInt(rawVal, 10);
-    const finalQty = isNaN(parsed) || parsed < 1 ? 1 : parsed;
-
-    setInputValue(String(finalQty));
-
-    if (alreadyInCart && finalQty !== cartQuantity) {
-      updateCartItem(alreadyInCart.id, finalQty);
-    }
-  };
-
-  const handleInputBlur = () => {
-    commitQuantity(inputValue);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      commitQuantity(inputValue);
-      (e.target as HTMLInputElement).blur();
-    }
-  };
-
-  const handleQuantityStep = (delta: number) => {
-    const current = parseInt(inputValue, 10) || 1;
-    const nextVal = Math.max(1, current + delta);
-    setInputValue(String(nextVal));
-
-    if (alreadyInCart && nextVal !== cartQuantity) {
-      updateCartItem(alreadyInCart.id, nextVal);
-    }
-  };
-
-  const handleAddToCart = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    const qty = parseInt(inputValue, 10) || 1;
-    addItemToCart(product, qty);
-  };
-
-  const handleInstantOrder = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (isOutOfStock) return;
-    const qty = parseInt(inputValue, 10) || 1;
-    router.push(`/checkout?productId=${product.id}&quantity=${qty}`);
-  };
+  // Buy Now orders only this product. The cart is never touched.
+  const buyHref = `/checkout?productId=${product.id}&quantity=${cartItem ? localQty : 1}`;
 
   return (
-    <div
-      onClick={handleCardClick}
-      className="group relative flex flex-col overflow-hidden rounded-2xl border border-purple-500/10 bg-slate-900/60 p-4 transition-all duration-300 hover:border-purple-500/30 hover:shadow-xl hover:shadow-purple-950/20 cursor-pointer"
-    >
-      <div className="relative mb-4 flex aspect-square w-full items-center justify-center overflow-hidden rounded-xl bg-slate-950/60 border border-slate-800">
+    <article className="group relative flex flex-col overflow-hidden rounded-2xl border border-purple-500/10 bg-slate-900/60 p-2.5 transition-all duration-300 hover:-translate-y-0.5 hover:border-purple-500/30 hover:shadow-2xl hover:shadow-purple-950/30 sm:p-3.5">
+      {/* Image */}
+      <div className="relative mb-3 aspect-4/3 w-full overflow-hidden rounded-xl border border-slate-800/80 bg-slate-950/70">
         {product.images?.[0]?.url ? (
           <Image
             src={product.images[0].url}
             alt={product.name}
             fill
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            className={`object-cover transition-transform duration-500 group-hover:scale-105 ${isOutOfStock ? "opacity-50 grayscale" : ""
+              }`}
           />
         ) : (
-          <div className="flex flex-col items-center justify-center text-slate-500">
-            <Camera className="h-10 w-10 opacity-50" />
-            <span className="mt-1 text-xs">No image</span>
+          <div className="flex h-full items-center justify-center text-slate-600">
+            <Camera className="h-8 w-8" />
           </div>
         )}
 
-        {isOutOfStock ? (
-          <span className="absolute top-2.5 right-2.5 rounded-full bg-red-500/20 border border-red-500/30 px-2.5 py-0.5 text-[10px] font-semibold text-red-400 backdrop-blur-md">
-            Out of Stock
+        {isOutOfStock && (
+          <span className="absolute right-2 top-2 rounded-full border border-red-500/30 bg-red-500/20 px-2 py-0.5 text-[10px] font-semibold text-red-300 backdrop-blur-md">
+            Sold out
           </span>
-        ) : product.availableQuantity !== null && product.availableQuantity < 10 ? (
-          <span className="absolute top-2.5 right-2.5 rounded-full bg-amber-500/20 border border-amber-500/30 px-2.5 py-0.5 text-[10px] font-semibold text-amber-300 backdrop-blur-md">
+        )}
+        {isLowStock && (
+          <span className="absolute right-2 top-2 rounded-full border border-amber-500/30 bg-amber-500/20 px-2 py-0.5 text-[10px] font-semibold text-amber-300 backdrop-blur-md">
             Only {product.availableQuantity} left
           </span>
-        ) : null}
+        )}
       </div>
 
-      <div className="flex flex-1 flex-col justify-between">
-        <div>
-          <div className="mb-2 flex flex-wrap gap-1.5">
-            {product.categories?.map((c) => (
-              <button
-                key={c.id}
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setCategory(c.id);
-                }}
-                className="rounded-md bg-purple-950/50 border border-purple-500/20 px-2 py-0.5 text-[10px] font-medium text-purple-300 hover:border-purple-500/40 hover:text-white transition-all z-10"
-              >
-                {c.name}
-              </button>
-            ))}
-          </div>
-
-          <h3 className="line-clamp-1 text-base font-semibold text-white group-hover:text-purple-300 transition-colors">
+      {/* Info */}
+      <div className="flex flex-1 flex-col gap-1">
+        {/* Stretched link: the ::after covers the whole card */}
+        <h3 className="line-clamp-1 text-sm font-semibold text-white transition-colors group-hover:text-purple-300 sm:text-base">
+          <Link
+            href={`/products/${product.id}`}
+            className="after:absolute after:inset-0 after:content-['']"
+          >
             {product.name}
-          </h3>
-        </div>
+          </Link>
+        </h3>
 
-        <div className="mt-4 flex flex-col gap-3 pt-3 border-t border-slate-800/80">
-          <div className="flex items-center justify-between">
-            <div>
-              <span className="block text-[10px] uppercase tracking-wider font-medium text-slate-400">
-                Price
-              </span>
-              <span className="text-base font-bold text-white">
-                ₦{product.price.toLocaleString()}
-              </span>
-            </div>
-          </div>
+        {product.description && (
+          <p className="line-clamp-2 text-xs leading-snug text-slate-400">
+            {product.description}
+          </p>
+        )}
 
-          {isOutOfStock ? (
-            <button
-              type="button"
-              disabled
-              className="w-full flex items-center justify-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-semibold bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed"
-            >
-              Unavailable
-            </button>
-          ) : (
-            <div className="flex items-center gap-2">
-              {alreadyInCart ? (
-                <div
-                  onClick={(e) => e.stopPropagation()}
-                  className="flex-1 flex items-center justify-between rounded-xl border border-purple-500/40 bg-purple-950/40 px-2.5 py-1.5 min-h-9.5"
-                >
-                  <button
-                    type="button"
-                    onClick={() => handleQuantityStep(-1)}
-                    className="p-1 text-purple-300 hover:text-white transition-colors cursor-pointer"
-                  >
-                    <Minus className="h-4 w-4" />
-                  </button>
+        <p className="mt-auto pt-2 text-base font-bold text-white sm:text-lg">
+          ₦{product.price.toLocaleString("en-NG")}
+        </p>
+      </div>
 
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    value={inputValue}
-                    onChange={handleInputChange}
-                    onBlur={handleInputBlur}
-                    onKeyDown={handleKeyDown}
-                    className="w-12 text-center text-sm font-bold text-white bg-transparent focus:outline-none"
-                  />
-
-                  <button
-                    type="button"
-                    onClick={() => handleQuantityStep(1)}
-                    className="p-1 text-purple-300 hover:text-white transition-colors cursor-pointer"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </button>
-                </div>
-              ) : (
+      {/* Actions: sit above the stretched link */}
+      <div className="relative z-10 mt-3">
+        {isOutOfStock ? (
+          <button
+            type="button"
+            disabled
+            className="min-h-10 w-full cursor-not-allowed rounded-xl border border-slate-800 bg-slate-800/60 px-3 text-xs font-semibold text-slate-500"
+          >
+            Unavailable
+          </button>
+        ) : (
+          <div className="flex items-center gap-2">
+            {cartItem ? (
+              <div className="flex min-h-10 flex-1 items-center justify-between rounded-xl border border-purple-500/40 bg-purple-950/50 px-1">
                 <button
                   type="button"
-                  onClick={handleAddToCart}
-                  className="flex-1 flex items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 text-xs font-semibold text-white bg-purple-600 hover:bg-purple-500 shadow-lg shadow-purple-900/30 active:scale-95 cursor-pointer transition-all min-h-9.5"
+                  onClick={() => handleStep(-1)}
+                  aria-label={localQty === 1 ? "Remove from cart" : "Decrease quantity"}
+                  className="rounded-lg p-1.5 text-purple-300 transition-colors hover:bg-purple-800/40 hover:text-white"
                 >
-                  <ShoppingCart className="h-3.5 w-3.5" />
-                  Add to Cart
+                  {localQty === 1 ? (
+                    <Trash2 className="h-4 w-4 text-red-400" />
+                  ) : (
+                    <Minus className="h-4 w-4" />
+                  )}
                 </button>
-              )}
 
+                <span className="select-none text-xs font-bold text-white">
+                  {localQty}
+                  <span className="hidden font-medium text-purple-300 sm:inline"> in cart</span>
+                </span>
+
+                <button
+                  type="button"
+                  onClick={() => handleStep(1)}
+                  disabled={localQty >= maxAvailable}
+                  aria-label="Increase quantity"
+                  className="rounded-lg p-1.5 text-purple-300 transition-colors hover:bg-purple-800/40 hover:text-white disabled:opacity-40"
+                >
+                  <Plus className="h-4 w-4" />
+                </button>
+              </div>
+            ) : (
               <button
                 type="button"
-                onClick={handleInstantOrder}
-                className="flex items-center justify-center gap-1 rounded-xl px-3.5 py-2.5 text-xs font-bold text-white bg-pink-600 hover:bg-pink-500 shadow-md shadow-pink-950/40 active:scale-95 cursor-pointer transition-all shrink-0 min-h-9.5"
-                title="Instant Order"
+                onClick={() => addItemToCart(product, 1)}
+                aria-label="Add to cart"
+                className="flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-xl bg-purple-600 px-2 text-xs font-semibold text-white shadow-lg shadow-purple-950/50 transition-all hover:bg-purple-500 active:scale-95"
               >
-                <Zap className="h-3.5 w-3.5 fill-current text-pink-200" />
-                Buy
+                <ShoppingCart className="h-4 w-4" />
+                <span>
+                  Add<span className="hidden sm:inline"> to Cart</span>
+                </span>
               </button>
-            </div>
-          )}
-        </div>
+            )}
+
+            <Link
+              href={buyHref}
+              title="Order this now"
+              className="flex min-h-10 shrink-0 items-center justify-center gap-1 rounded-xl bg-linear-to-r from-pink-600 to-purple-600 px-3 text-xs font-bold text-white shadow-md shadow-pink-950/40 transition-all hover:from-pink-500 hover:to-purple-500 active:scale-95"
+            >
+              <Zap className="h-4 w-4 fill-current text-pink-200" />
+              Buy
+            </Link>
+          </div>
+        )}
+      </div>
+    </article>
+  );
+}
+
+export function ProductCardSkeleton() {
+  return (
+    <div className="animate-pulse rounded-2xl border border-slate-800 bg-slate-900/40 p-2.5 sm:p-3.5">
+      <div className="mb-3 aspect-4/3 w-full rounded-xl bg-slate-800/80" />
+      <div className="mb-2 h-4 w-3/4 rounded bg-slate-800" />
+      <div className="mb-1.5 h-3 w-full rounded bg-slate-800/70" />
+      <div className="mb-4 h-3 w-2/3 rounded bg-slate-800/70" />
+      <div className="mb-3 h-5 w-1/3 rounded bg-slate-800" />
+      <div className="flex gap-2">
+        <div className="h-10 flex-1 rounded-xl bg-slate-800" />
+        <div className="h-10 w-16 rounded-xl bg-slate-800" />
       </div>
     </div>
   );

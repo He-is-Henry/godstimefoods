@@ -1,10 +1,13 @@
 ﻿"use client";
 
-import ProductCard from "@/components/ProductCard";
+import ProductCard, { ProductCardSkeleton } from "@/components/ProductCard";
 import { useCategoriesQuery } from "@/queries/useCategories";
 import { useProductQuery } from "@/queries/useProducts";
 import { ShoppingBag } from "lucide-react";
 import { useState } from "react";
+
+
+const GRID = "grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4";
 
 export default function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState(0);
@@ -26,8 +29,8 @@ export default function HomePage() {
               key={c.id}
               onClick={() => setSelectedCategory(c.id)}
               className={`px-4 py-2 rounded-full text-xs font-semibold transition-all cursor-pointer ${isActive
-                  ? "bg-linear-to-r from-purple-600 to-pink-600 text-white shadow-md shadow-purple-900/40"
-                  : "bg-slate-900 border border-slate-800 text-slate-400 hover:text-purple-200 hover:border-purple-500/30"
+                ? "bg-linear-to-r from-purple-600 to-pink-600 text-white shadow-md shadow-purple-900/40"
+                : "bg-slate-900 border border-slate-800 text-slate-400 hover:text-purple-200 hover:border-purple-500/30"
                 }`}
             >
               {c.name}
@@ -50,16 +53,9 @@ export default function HomePage() {
       </div>
 
       {productsLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className={GRID}>
           {Array.from({ length: 8 }).map((_, i) => (
-            <div
-              key={i}
-              className="h-80 animate-pulse rounded-2xl border border-slate-800 bg-slate-900/40 p-4"
-            >
-              <div className="aspect-square w-full rounded-xl bg-slate-800/80 mb-4" />
-              <div className="h-4 w-3/4 rounded bg-slate-800 mb-2" />
-              <div className="h-4 w-1/2 rounded bg-slate-800" />
-            </div>
+            <ProductCardSkeleton key={i} />
           ))}
         </div>
       ) : !products || products.length === 0 ? (
@@ -73,13 +69,9 @@ export default function HomePage() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className={GRID}>
           {products.map((product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              setCategory={setSelectedCategory}
-            />
+            <ProductCard key={product.id} product={product} />
           ))}
         </div>
       )}
