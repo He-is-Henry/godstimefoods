@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import UsersClient from "./users.client";
 
 export const metadata: Metadata = {
-  title: "User Management - Godstime Foods Admin",
+  title: "User Management - Godstime Food Canteen Admin",
   description: "Manage accounts, provision staff, and assign access roles.",
 };
 

@@ -30,7 +30,7 @@ export default function AdminNavbar() {
             </div>
             <div>
               <span className="font-bold text-white text-sm tracking-wide group-hover:text-purple-300 transition-colors">
-                Godstime Foods
+                Godstime Food Canteen
               </span>
               <span className="text-[10px] block text-purple-400 font-semibold uppercase tracking-wider">
                 Admin Console
@@ -51,11 +51,10 @@ export default function AdminNavbar() {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
-                      isActive
+                    className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${isActive
                         ? "bg-purple-600 text-white shadow-md shadow-purple-900/30"
                         : "text-slate-400 hover:text-white hover:bg-slate-800/60"
-                    }`}
+                      }`}
                   >
                     <Icon className="h-4 w-4" />
                     <span>{item.label}</span>
@@ -100,11 +99,10 @@ export default function AdminNavbar() {
                     key={item.href}
                     href={item.href}
                     onClick={() => setIsOpen(false)}
-                    className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
-                      isActive
+                    className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${isActive
                         ? "bg-purple-600 text-white shadow-md shadow-purple-900/30"
                         : "text-slate-400 hover:text-white hover:bg-slate-800/60"
-                    }`}
+                      }`}
                   >
                     <Icon className="h-4 w-4 text-purple-400" />
                     <span>{item.label}</span>

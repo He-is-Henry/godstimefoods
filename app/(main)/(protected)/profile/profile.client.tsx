@@ -39,7 +39,7 @@ export default function ProfileClient() {
 
   useEffect(() => {
     if (user?.firstName) {
-      document.title = `${user.firstName}'s Profile - Godstime Foods`;
+      document.title = `${user.firstName}'s Profile - Godstime Food Canteen`;
     }
   }, [user?.firstName]);
 

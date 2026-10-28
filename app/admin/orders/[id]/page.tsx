@@ -6,7 +6,7 @@ interface PageProps {
 
 export const metadata = {
   title: "Order Audit - Admin Console",
-  description: "Detailed order management audit trail for Godstime Foods.",
+  description: "Detailed order management audit trail for Godstime Food Canteen.",
 };
 
 export default async function AdminOrderDetailPage({ params }: PageProps) {

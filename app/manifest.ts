@@ -3,8 +3,8 @@ import type { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: "/",
-    name: "Godstime Foods",
-    short_name: "Godstime Foods",
+    name: "Godstime Food Canteen",
+    short_name: "Godstime Canteen",
     description: "Order delicious meals directly to your doorstep",
     start_url: "/",
     display: "standalone",

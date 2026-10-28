@@ -27,8 +27,8 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: "Godstime Foods",
-    template: "%s - Godstime Foods",
+    default: "Godstime Food Canteen",
+    template: "%s - Godstime Food Canteen",
   },
   description: "Order delicious meals directly to your doorstep",
   icons: {
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Godstime Foods",
+    title: "Godstime Food Canteen",
   },
 };
 

@@ -3,8 +3,8 @@ import { Package, Users, ShoppingBag, ShieldCheck, ArrowRight } from "lucide-rea
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Admin Console - Godstime Foods",
-  description: "Administrative console overview for Godstime Foods.",
+  title: "Admin Console - Godstime Food Canteen",
+  description: "Administrative console overview for Godstime Food Canteen.",
 };
 
 export default function AdminDashboardPage() {

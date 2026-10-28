@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import ProductsClient from "./products.client";
 
 export const metadata: Metadata = {
-  title: "Catalog Management - Godstime Foods Admin",
+  title: "Catalog Management - Godstime Food Canteen Admin",
   description: "Manage products, categories, and media assets.",
 };
 

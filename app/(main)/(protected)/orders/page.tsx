@@ -1,7 +1,7 @@
 ﻿import OrdersClient from "./orders.client";
 
 export const metadata = {
-  title: "My Orders - Godstime Foods",
+  title: "My Orders - Godstime Food Canteen",
   description: "View and track your active and past food orders.",
 };
 

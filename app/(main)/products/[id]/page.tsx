@@ -13,13 +13,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   if (!product) {
     return {
-      title: "Product Not Found - Godstime Foods",
+      title: "Product Not Found - Godstime Food Canteen",
     };
   }
 
   return {
-    title: `${product.name} - Godstime Foods`,
-    description: `Order ${product.name} for ₦${product.price.toLocaleString()} at Godstime Foods.`,
+    title: `${product.name} - Godstime Food Canteen`,
+    description: `Order ${product.name} for ₦${product.price.toLocaleString()} at Godstime Food Canteen.`,
   };
 }
 

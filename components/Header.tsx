@@ -32,7 +32,7 @@ export default function Header() {
                 <ShoppingBag className="h-5 w-5" />
               </div>
               <span className="text-xl font-bold tracking-tight text-white group-hover:text-purple-300 transition-colors">
-                Godstime Foods
+                Godstime Food Canteen
               </span>
             </Link>
 
@@ -47,11 +47,10 @@ export default function Header() {
                   <Link
                     key={link.href}
                     href={link.href}
-                    className={`transition-colors hover:text-purple-300 flex items-center gap-1.5 ${
-                      isActive
+                    className={`transition-colors hover:text-purple-300 flex items-center gap-1.5 ${isActive
                         ? "text-purple-400 font-bold"
                         : "text-slate-300"
-                    }`}
+                      }`}
                   >
                     <span>{link.label}</span>
                     {link.badge !== undefined && link.badge > 0 && (

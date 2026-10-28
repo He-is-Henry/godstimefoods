@@ -61,13 +61,13 @@ export default function InstallClient() {
       <div className="text-center space-y-3">
         <Image
           src="/android-chrome-192x192.png"
-          alt="Godstime Foods"
+          alt="Godstime Food Canteen"
           width={80}
           height={80}
           className="mx-auto rounded-2xl shadow-md"
         />
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-          Install Godstime Foods
+          Install Godstime Food Canteen
         </h1>
         <p className="text-sm text-slate-600 dark:text-slate-400">
           Get fast access, full-screen ordering, and real-time order tracking notifications directly from your home screen.
@@ -81,7 +81,7 @@ export default function InstallClient() {
             App is Installed!
           </p>
           <p className="text-xs text-emerald-700 dark:text-emerald-400">
-            You are running Godstime Foods as a native application.
+            You are running Godstime Food Canteen as a native application.
           </p>
         </div>
       ) : deferredPrompt ? (
