@@ -12,7 +12,7 @@ interface UserProfileContext {
   email: string;
 }
 
-export default function ResetPasswordPage() {
+export default function ResetPasswordClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
