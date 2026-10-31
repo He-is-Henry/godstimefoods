@@ -56,3 +56,14 @@ export const uploadAvatar = (file: File) => {
 
 export const changePassword = (data: ChangePasswordPayload) =>
   apiClient.patch<LoginRes>("/auth/change-password", data);
+
+export const forgotPassword = (email: string) =>
+  apiClient.post<string>("/auth/forgot-password", {
+    email,
+  });
+
+export const verifyToken = (token: string) =>
+  apiClient.post<User>("/auth/verify-token", { token });
+
+export const resetPassword = (token: string, password: string) =>
+  apiClient.post<User>("/auth/reset-token", { token, password });

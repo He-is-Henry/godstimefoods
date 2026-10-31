@@ -69,12 +69,21 @@ export default function LoginClient() {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-purple-200 mb-1.5 uppercase tracking-wider">
-              Password
-            </label>
-            <div className="relative"> {/* Container made relative */}
+            <div className="flex justify-between items-center mb-1.5">
+              <label className="block text-xs font-medium text-purple-200 uppercase tracking-wider">
+                Password
+              </label>
+              <Link
+                href="/forgot-password"
+                className="text-xs text-pink-400 hover:underline font-medium"
+              >
+                Forgot Password?
+              </Link>
+            </div>
+
+            <div className="relative">
               <input
-                type={showPassword ? "text" : "password"} // Dynamic input type
+                type={showPassword ? "text" : "password"}
                 id="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
