@@ -1,6 +1,6 @@
 ﻿import type { MetadataRoute } from "next";
 
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://godstimefoods.com";
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://godstimefoodcanteen.com";
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 type Product = {
